@@ -1,0 +1,11 @@
+{
+  "name": "hic-rhodus-monorepo",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "check:nearby": "node scripts/check-nearby-protocol.mjs",
+    "build:display": "bun --cwd apps/display run build",
+    "build:controller": "bun --cwd apps/controller run build",
+    "build:apps": "bun run check:nearby && bun run build:display && bun run build:controller"
+  }
+}
