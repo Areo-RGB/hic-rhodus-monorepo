@@ -26,6 +26,14 @@ After `bun run build:apps`, the debug APKs are produced at:
 
 - Display package `com.aistudio.paulportfolio.kzmpxr` goes on the pad.
 - Controller package `com.aistudio.paulportfolio.likiod` goes on the plus device.
+- Xiaomi 2410CRP4CG / serial supplied at install time = pad / Display.
+- OnePlus CPH2399 / serial supplied at install time = plus / Controller.
+
+Install and launch both role-specific debug APKs with explicit device serials:
+
+```powershell
+.\scripts\install-devices.ps1 -PadSerial <pad-serial> -PlusSerial <plus-serial>
+```
 
 ## Nearby Contract
 
