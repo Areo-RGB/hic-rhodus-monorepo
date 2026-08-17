@@ -91,8 +91,8 @@ class NearbyManager(
       Log.d(TAG, "Connection initiated with: ${info.endpointName} ($endpointId)")
       notifyStatus("connecting", info.endpointName)
       // Auto accept connection
-      connectionsClient.acceptConnection(endpointId, payloadCallback)
-        .addOnFailureListener { e ->
+      connectionsClient?.acceptConnection(endpointId, payloadCallback)
+        ?.addOnFailureListener { e ->
           Log.e(TAG, "Accept connection failed", e)
           notifyStatus("error", "Accept failed: ${e.message}")
         }
