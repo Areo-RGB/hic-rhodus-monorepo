@@ -8,3 +8,5 @@ This package defines the shared Nearby Connections contract for the native apps.
 - Payloads are UTF-8 JSON bytes.
 - Firebase room `444` remains the browser/hybrid fallback.
 - The native Kotlin managers must match `protocol.json`.
+
+For monorepo setup, APK output paths, package-to-device mapping, and troubleshooting guidance, see the root [README](../../README.md).
