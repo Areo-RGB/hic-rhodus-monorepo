@@ -34,7 +34,7 @@ class NearbyManager(
 ) {
   companion object {
     private const val TAG = "NearbyManager"
-    private const val SERVICE_ID = "com.example.hicrhodus.p2p"
+    private const val SERVICE_ID = "hic_rhodus_p2p"
     private val STRATEGY = Strategy.P2P_STAR
   }
 
