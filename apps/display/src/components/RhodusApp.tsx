@@ -49,6 +49,7 @@ function createFinalShuffledGrid() {
 
 import RhodusDuoDisplay from './RhodusDuoDisplay';
 import RhodusDuoController from './RhodusDuoController';
+import { isNearbyAvailable } from '../lib/nearby';
 
 export default function RhodusApp() {
   const [appMode, setAppMode] = useState<'local' | 'duo-display' | 'duo-controller'>('local');
@@ -381,6 +382,12 @@ export default function RhodusApp() {
       stopTimers();
     };
   }, [stopTraining]);
+
+  const isNativeNearbyMode = isNearbyAvailable();
+
+  if (isNativeNearbyMode) {
+    return <RhodusDuoDisplay />;
+  }
 
   if (appMode === 'duo-display') {
     return <RhodusDuoDisplay onExit={() => setAppMode('local')} />;

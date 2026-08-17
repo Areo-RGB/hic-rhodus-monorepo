@@ -30,7 +30,7 @@ function getContrastTextColor(hexColor: string): string {
   return brightness > 130 ? '#000000' : '#ffffff';
 }
 
-export default function RhodusDuoDisplay({ onExit }: { onExit: () => void }) {
+export default function RhodusDuoDisplay({ onExit }: { onExit?: () => void }) {
   const [activeCellIndex, setActiveCellIndex] = useState(-1);
   const [changeCount, setChangeCount] = useState(0);
   const [colors, setColors] = useState(DEFAULT_COLORS);
@@ -109,13 +109,15 @@ export default function RhodusDuoDisplay({ onExit }: { onExit: () => void }) {
     <div className="flex h-full w-full bg-[#000000] text-white font-mono select-none overflow-hidden relative">
       {/* Top Header / Exit & Status Bar */}
       <div className="absolute top-4 left-4 right-4 z-50 flex items-center justify-between pointer-events-none">
-        <button 
-          onClick={onExit}
-          className="pointer-events-auto p-2.5 bg-black/60 hover:bg-black/90 rounded-full transition-colors text-white/70 hover:text-white backdrop-blur-md border border-white/10 shadow-lg"
-          title="Schließen"
-        >
-          <X size={22} />
-        </button>
+        {onExit && (
+          <button
+            onClick={onExit}
+            className="pointer-events-auto p-2.5 bg-black/60 hover:bg-black/90 rounded-full transition-colors text-white/70 hover:text-white backdrop-blur-md border border-white/10 shadow-lg"
+            title="Schließen"
+          >
+            <X size={22} />
+          </button>
+        )}
 
         {/* Live Multi-Connection Indicator */}
         <div 
