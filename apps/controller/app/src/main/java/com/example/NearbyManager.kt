@@ -156,6 +156,11 @@ class NearbyManager(
     val permissions = getRequiredPermissions()
     return permissions.all {
       ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+    } || run {
+      // Fallback: COARSE or FINE location satisfies location requirement
+      val coarse = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+      val fine = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+      (coarse || fine) && permissions.filterNot { it == android.Manifest.permission.ACCESS_COARSE_LOCATION || it == android.Manifest.permission.ACCESS_FINE_LOCATION }.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }
     }
   }
 
@@ -165,10 +170,13 @@ class NearbyManager(
       list.add(android.Manifest.permission.BLUETOOTH_SCAN)
       list.add(android.Manifest.permission.BLUETOOTH_ADVERTISE)
       list.add(android.Manifest.permission.BLUETOOTH_CONNECT)
+      list.add(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+      list.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
     } else {
       list.add(android.Manifest.permission.BLUETOOTH)
       list.add(android.Manifest.permission.BLUETOOTH_ADMIN)
       list.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
+      list.add(android.Manifest.permission.ACCESS_COARSE_LOCATION)
     }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
       list.add(android.Manifest.permission.NEARBY_WIFI_DEVICES)

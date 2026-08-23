@@ -44,7 +44,7 @@ Install and launch both role-specific debug APKs with explicit device serials:
 
 ## Browser and PWA Fallback
 
-When `window.AndroidNearby` is unavailable, the browser/PWA fallback uses Firebase room `444`.
+There is no cloud fallback. The apps sync exclusively over native Nearby Connections; in a browser or PWA environment `window.AndroidNearby` is unavailable, so no transport exists there.
 
 ## Troubleshooting
 
@@ -56,4 +56,4 @@ If the sequence stalls before `advertising` or discovery never starts, check And
 
 If both devices appear healthy but never progress from discovery to a stable connection, verify the service ID on each side. A `hic_rhodus_p2p` mismatch typically looks like one device advertising while the other never reports `found_device`, or it repeatedly scans without moving on to `connecting`.
 
-If `window.AndroidNearby` is missing in a browser or PWA environment, that is expected. In that case the apps should use Firebase room `444` instead of native Nearby, which is the intended fallback when the Android bridge is unavailable.
+If `window.AndroidNearby` is missing in a browser or PWA environment, that is expected. In that case there is no transport — the apps sync only over native Nearby Connections.

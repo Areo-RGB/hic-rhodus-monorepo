@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -32,12 +33,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.example.ui.theme.MyApplicationTheme
 import java.io.File
 
 class MainActivity : ComponentActivity() {
   private var nearbyManager: NearbyManager? = null
   private var currentWebView: WebView? = null
+  private var hasAutoPromptedPermissions = false
 
   private val requestPermissionLauncher = registerForActivityResult(
     ActivityResultContracts.RequestMultiplePermissions()
@@ -61,9 +66,18 @@ class MainActivity : ComponentActivity() {
       if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
         permissionsToRequest.add(android.Manifest.permission.BLUETOOTH_CONNECT)
       }
+      if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        permissionsToRequest.add(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+      }
+      if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        permissionsToRequest.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
+      }
     } else {
       if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
         permissionsToRequest.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
+      }
+      if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        permissionsToRequest.add(android.Manifest.permission.ACCESS_COARSE_LOCATION)
       }
     }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -90,6 +104,7 @@ class MainActivity : ComponentActivity() {
     }
 
     enableEdgeToEdge()
+    applyImmersiveMode()
 
     if (crashFile.exists()) {
       val crashText = crashFile.readText()
@@ -124,6 +139,10 @@ class MainActivity : ComponentActivity() {
             onWebViewCreated = { webView ->
               currentWebView = webView
               nearbyManager?.setWebView(webView)
+              if (!hasAutoPromptedPermissions) {
+                hasAutoPromptedPermissions = true
+                requestRequiredNearbyPermissions()
+              }
             },
             modifier = Modifier.fillMaxSize()
           )
@@ -143,6 +162,26 @@ class MainActivity : ComponentActivity() {
           )
         }
       }
+    }
+  }
+
+  override fun onWindowFocusChanged(hasFocus: Boolean) {
+    super.onWindowFocusChanged(hasFocus)
+    if (hasFocus) applyImmersiveMode()
+  }
+
+  private fun applyImmersiveMode() {
+    WindowCompat.setDecorFitsSystemWindows(window, false)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      window.attributes = window.attributes.apply {
+        layoutInDisplayCutoutMode =
+          WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+      }
+    }
+    WindowCompat.getInsetsController(window, window.decorView).apply {
+      systemBarsBehavior =
+        WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+      hide(WindowInsetsCompat.Type.systemBars())
     }
   }
 

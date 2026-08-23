@@ -3,9 +3,11 @@ package com.example
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
@@ -26,11 +28,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.example.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
   private var nearbyManager: NearbyManager? = null
   private var activeWebView: WebView? = null
+  private var hasAutoPromptedPermissions = false
 
   private val requestPermissionLauncher = registerForActivityResult(
     ActivityResultContracts.RequestMultiplePermissions()
@@ -40,10 +47,48 @@ class MainActivity : ComponentActivity() {
     activeWebView?.evaluateJavascript(jsCall, null)
   }
 
+  fun requestRequiredNearbyPermissions() {
+    val permissionsToRequest = mutableListOf<String>()
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+      if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+        permissionsToRequest.add(android.Manifest.permission.BLUETOOTH_SCAN)
+      }
+      if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_ADVERTISE) != PackageManager.PERMISSION_GRANTED) {
+        permissionsToRequest.add(android.Manifest.permission.BLUETOOTH_ADVERTISE)
+      }
+      if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+        permissionsToRequest.add(android.Manifest.permission.BLUETOOTH_CONNECT)
+      }
+      if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        permissionsToRequest.add(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+      }
+      if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        permissionsToRequest.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
+      }
+    } else {
+      if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        permissionsToRequest.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
+      }
+      if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        permissionsToRequest.add(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+      }
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.NEARBY_WIFI_DEVICES) != PackageManager.PERMISSION_GRANTED) {
+        permissionsToRequest.add(android.Manifest.permission.NEARBY_WIFI_DEVICES)
+      }
+    }
+
+    if (permissionsToRequest.isNotEmpty()) {
+      requestPermissionLauncher.launch(permissionsToRequest.toTypedArray())
+    }
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     // Force update 2
     enableEdgeToEdge()
+    applyImmersiveMode()
 
     try {
       nearbyManager = NearbyManager(this, null)
@@ -56,10 +101,36 @@ class MainActivity : ComponentActivity() {
         HicRhodusWebView(
           url = "file:///android_asset/index.html",
           nearbyManager = nearbyManager,
-          onWebViewCreated = { activeWebView = it },
+          onWebViewCreated = { webView ->
+            activeWebView = webView
+            if (!hasAutoPromptedPermissions) {
+              hasAutoPromptedPermissions = true
+              requestRequiredNearbyPermissions()
+            }
+          },
           modifier = Modifier.fillMaxSize()
         )
       }
+    }
+  }
+
+  override fun onWindowFocusChanged(hasFocus: Boolean) {
+    super.onWindowFocusChanged(hasFocus)
+    if (hasFocus) applyImmersiveMode()
+  }
+
+  private fun applyImmersiveMode() {
+    WindowCompat.setDecorFitsSystemWindows(window, false)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      window.attributes = window.attributes.apply {
+        layoutInDisplayCutoutMode =
+          WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+      }
+    }
+    WindowCompat.getInsetsController(window, window.decorView).apply {
+      systemBarsBehavior =
+        WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+      hide(WindowInsetsCompat.Type.systemBars())
     }
   }
 

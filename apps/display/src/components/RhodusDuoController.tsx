@@ -1,6 +1,4 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { ref, update, onValue } from 'firebase/database';
-import { rtdb } from '../lib/firebase';
 import { 
   isNearbyAvailable, 
   startNearbyController, 
@@ -17,28 +15,23 @@ import {
   LayoutGrid, 
   List, 
   Shuffle, 
-  RotateCcw, 
-  Radio, 
-  Cloud, 
-  RefreshCw, 
-  ShieldCheck, 
-  WifiOff 
+  RotateCcw,
+  Radio,
+  RefreshCw,
+  ShieldCheck,
+  WifiOff
 } from 'lucide-react';
 
 const DEFAULT_COLORS = ['#facc15', '#ef4444', '#3b82f6', '#22c55e'];
-
-type SyncMode = 'hybrid' | 'nearby' | 'firebase';
 
 export default function RhodusDuoController({ onExit }: { onExit: () => void }) {
   const [activeTab, setActiveTab] = useState<'settings' | 'grid' | 'connection' | 'log'>('settings');
   const [intervalMs, setIntervalMs] = useState(1000);
   const [targetFlashes, setTargetFlashes] = useState(10);
   const [colors, setColors] = useState(DEFAULT_COLORS);
-  
-  const [syncMode, setSyncMode] = useState<SyncMode>('hybrid');
+
   const [nearbyStatus, setNearbyStatus] = useState<NearbyStatus>('idle');
   const [nearbyDetails, setNearbyDetails] = useState('');
-  const [firebaseConnected, setFirebaseConnected] = useState(true);
 
   const [isActive, setIsActive] = useState(false);
   const [changeCount, setChangeCount] = useState(0);
@@ -49,44 +42,22 @@ export default function RhodusDuoController({ onExit }: { onExit: () => void }) 
   const changeCountRef = useRef(changeCount);
   const isActiveRef = useRef(isActive);
   const colorsRef = useRef(colors);
-  const syncModeRef = useRef(syncMode);
-  
+
   useEffect(() => { changeCountRef.current = changeCount; }, [changeCount]);
   useEffect(() => { isActiveRef.current = isActive; }, [isActive]);
   useEffect(() => { colorsRef.current = colors; }, [colors]);
-  useEffect(() => { syncModeRef.current = syncMode; }, [syncMode]);
 
   const addLog = (msg: string) => {
     setLogs(prev => [{ time: new Date().toLocaleTimeString(), msg }, ...prev].slice(0, 50));
   };
 
-  // Broadcast to Firebase & Nearby based on syncMode
+  // Broadcast to Nearby Connections
   const broadcastState = (cellIndex: number, count: number, currentColors = colorsRef.current) => {
-    const mode = syncModeRef.current;
-
-    // 1. Firebase Online Sync
-    if (mode === 'hybrid' || mode === 'firebase') {
-      try {
-        update(ref(rtdb, 'rooms/444'), {
-          activeCellIndex: cellIndex,
-          changeCount: count,
-          colors: currentColors
-        }).catch(err => {
-          console.warn('Firebase update err:', err);
-        });
-      } catch (e) {
-        console.warn('Firebase error:', e);
-      }
-    }
-
-    // 2. Nearby Connections Offline Sync
-    if (mode === 'hybrid' || mode === 'nearby') {
-      sendNearbyPayload({
-        activeCellIndex: cellIndex,
-        changeCount: count,
-        colors: currentColors
-      });
-    }
+    sendNearbyPayload({
+      activeCellIndex: cellIndex,
+      changeCount: count,
+      colors: currentColors
+    });
   };
 
   // Setup Nearby Connections for Controller
@@ -110,35 +81,11 @@ export default function RhodusDuoController({ onExit }: { onExit: () => void }) 
     };
   }, []);
 
-  // Sync with Firebase room 444
+  // Reset display state when leaving
   useEffect(() => {
-    try {
-      const roomRef = ref(rtdb, 'rooms/444');
-      const unsubscribe = onValue(roomRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data && data.colors && Array.isArray(data.colors) && data.colors.length === 4) {
-          setColors(data.colors);
-        } else {
-          update(ref(rtdb, 'rooms/444'), {
-            colors: DEFAULT_COLORS,
-            activeCellIndex: -1,
-            changeCount: 0
-          });
-          setColors(DEFAULT_COLORS);
-        }
-      }, (err) => {
-        console.warn('Firebase listener error:', err);
-        setFirebaseConnected(false);
-      });
-
-      return () => {
-        unsubscribe();
-        broadcastState(-1, 0);
-      };
-    } catch (e) {
-      console.warn('Firebase init err:', e);
-      setFirebaseConnected(false);
-    }
+    return () => {
+      broadcastState(-1, 0);
+    };
   }, []);
 
   const reshuffleColors = () => {
@@ -367,49 +314,6 @@ export default function RhodusDuoController({ onExit }: { onExit: () => void }) 
         {/* Connection & Offline Sync Tab */}
         {activeTab === 'connection' && (
           <div className="max-w-md mx-auto space-y-6">
-            {/* Sync Mode Selector */}
-            <div className="bg-[#111115] border border-[#222226] rounded-2xl p-5 space-y-4">
-              <h2 className="text-xs font-bold tracking-widest uppercase text-white/60">Verbindungsmodus</h2>
-              
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => setSyncMode('hybrid')}
-                  className={`p-3 rounded-xl border flex flex-col items-center gap-2 text-center transition-all ${
-                    syncMode === 'hybrid' 
-                      ? 'border-purple-500 bg-purple-500/15 text-white' 
-                      : 'border-[#222226] bg-[#0a0a0c] text-white/50 hover:text-white'
-                  }`}
-                >
-                  <Radio size={18} className={syncMode === 'hybrid' ? 'text-purple-400' : ''} />
-                  <span className="text-[11px] font-bold">Beide (Hybrid)</span>
-                </button>
-
-                <button
-                  onClick={() => setSyncMode('nearby')}
-                  className={`p-3 rounded-xl border flex flex-col items-center gap-2 text-center transition-all ${
-                    syncMode === 'nearby' 
-                      ? 'border-emerald-500 bg-emerald-500/15 text-white' 
-                      : 'border-[#222226] bg-[#0a0a0c] text-white/50 hover:text-white'
-                  }`}
-                >
-                  <WifiOff size={18} className={syncMode === 'nearby' ? 'text-emerald-400' : ''} />
-                  <span className="text-[11px] font-bold">Nearby Offline</span>
-                </button>
-
-                <button
-                  onClick={() => setSyncMode('firebase')}
-                  className={`p-3 rounded-xl border flex flex-col items-center gap-2 text-center transition-all ${
-                    syncMode === 'firebase' 
-                      ? 'border-blue-500 bg-blue-500/15 text-white' 
-                      : 'border-[#222226] bg-[#0a0a0c] text-white/50 hover:text-white'
-                  }`}
-                >
-                  <Cloud size={18} className={syncMode === 'firebase' ? 'text-blue-400' : ''} />
-                  <span className="text-[11px] font-bold">Firebase Cloud</span>
-                </button>
-              </div>
-            </div>
-
             {/* Nearby Connections Details Card */}
             <div className="bg-[#111115] border border-[#222226] rounded-2xl p-5 space-y-4">
               <div className="flex items-center justify-between">
@@ -454,22 +358,6 @@ export default function RhodusDuoController({ onExit }: { onExit: () => void }) 
                   <ShieldCheck size={14} /> Rechte
                 </button>
               </div>
-            </div>
-
-            {/* Firebase Card */}
-            <div className="bg-[#111115] border border-[#222226] rounded-2xl p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Cloud size={18} className="text-purple-400" />
-                  <h3 className="text-xs font-bold tracking-widest uppercase">Firebase Cloud Database</h3>
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                  Raum 444
-                </span>
-              </div>
-              <p className="text-xs text-white/60">
-                Online-Synchronisierung über die Cloud bei aktiver Internetverbindung.
-              </p>
             </div>
           </div>
         )}

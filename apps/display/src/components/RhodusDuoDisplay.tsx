@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { ref, onValue } from 'firebase/database';
-import { rtdb } from '../lib/firebase';
 import { 
   isNearbyAvailable, 
   startNearbyDisplay, 
@@ -8,7 +6,7 @@ import {
   NearbyStatus, 
   NearbySyncPayload 
 } from '../lib/nearby';
-import { X, Wifi, Radio, Cloud, ShieldCheck } from 'lucide-react';
+import { X, Wifi, Radio, ShieldCheck } from 'lucide-react';
 
 const DEFAULT_COLORS = ['#facc15', '#ef4444', '#3b82f6', '#22c55e'];
 
@@ -34,42 +32,14 @@ export default function RhodusDuoDisplay({ onExit }: { onExit?: () => void }) {
   const [activeCellIndex, setActiveCellIndex] = useState(-1);
   const [changeCount, setChangeCount] = useState(0);
   const [colors, setColors] = useState(DEFAULT_COLORS);
+  const [countdownValue, setCountdownValue] = useState<number | null>(null);
   
   // Connection states
   const [nearbyStatus, setNearbyStatus] = useState<NearbyStatus>('idle');
   const [nearbyDetails, setNearbyDetails] = useState('');
-  const [firebaseConnected, setFirebaseConnected] = useState(true);
   const [showConnectionBar, setShowConnectionBar] = useState(true);
 
-  // 1. Listen to Firebase Realtime Database
-  useEffect(() => {
-    try {
-      const roomRef = ref(rtdb, 'rooms/444');
-      const unsubscribe = onValue(roomRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          setActiveCellIndex(data.activeCellIndex ?? -1);
-          setChangeCount(data.changeCount ?? 0);
-          if (data.colors && Array.isArray(data.colors) && data.colors.length === 4) {
-            setColors(data.colors);
-          }
-        } else {
-          setActiveCellIndex(-1);
-          setChangeCount(0);
-        }
-      }, (error) => {
-        console.warn('Firebase sync error:', error);
-        setFirebaseConnected(false);
-      });
-
-      return () => unsubscribe();
-    } catch (e) {
-      console.warn('Firebase init error:', e);
-      setFirebaseConnected(false);
-    }
-  }, []);
-
-  // 2. Setup Nearby Connections (Offline P2P)
+  // Setup Nearby Connections (Offline P2P)
   useEffect(() => {
     // Start advertising Display
     startNearbyDisplay('HicRhodusDisplay');
@@ -91,6 +61,12 @@ export default function RhodusDuoDisplay({ onExit }: { onExit?: () => void }) {
           }
           if (payload.colors && Array.isArray(payload.colors) && payload.colors.length === 4) {
             setColors(payload.colors);
+          }
+          if (payload.countdown !== undefined) {
+            setCountdownValue(payload.countdown);
+          } else if (payload.activeCellIndex !== undefined && payload.activeCellIndex !== -1) {
+            // Any flash implicitly clears stale countdown (fallback if null payload lost)
+            setCountdownValue(null);
           }
         }
       } catch (e) {
@@ -124,21 +100,10 @@ export default function RhodusDuoDisplay({ onExit }: { onExit?: () => void }) {
           onClick={() => setShowConnectionBar(!showConnectionBar)}
           className="pointer-events-auto flex items-center gap-2 px-3.5 py-1.5 bg-black/60 backdrop-blur-md rounded-full border border-white/10 text-xs shadow-lg cursor-pointer"
         >
-          {/* Nearby Offline Indicator */}
           <div className="flex items-center gap-1.5">
             <Radio size={14} className={nearbyStatus === 'connected' ? 'text-emerald-400 animate-pulse' : nearbyStatus === 'advertising' ? 'text-amber-400 animate-pulse' : 'text-white/40'} />
             <span className={nearbyStatus === 'connected' ? 'text-emerald-400 font-bold' : 'text-white/60'}>
               {nearbyStatus === 'connected' ? 'Nearby P2P' : nearbyStatus === 'advertising' ? 'P2P Sucht...' : 'P2P Offline'}
-            </span>
-          </div>
-
-          <span className="text-white/20">|</span>
-
-          {/* Firebase Online Indicator */}
-          <div className="flex items-center gap-1.5">
-            <Cloud size={14} className={firebaseConnected ? 'text-purple-400' : 'text-red-400'} />
-            <span className={firebaseConnected ? 'text-purple-300' : 'text-white/40'}>
-              {firebaseConnected ? 'Firebase' : 'Offline'}
             </span>
           </div>
         </div>
@@ -164,6 +129,11 @@ export default function RhodusDuoDisplay({ onExit }: { onExit?: () => void }) {
           ))}
         </div>
       </main>
+      {countdownValue !== null && countdownValue > 0 && (
+        <div className="countdown" aria-live="assertive">
+          <span key={countdownValue}>{countdownValue}</span>
+        </div>
+      )}
     </div>
   );
 }

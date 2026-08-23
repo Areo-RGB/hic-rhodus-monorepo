@@ -33,6 +33,7 @@ export interface NearbySyncPayload {
   changeCount: number;
   colors?: string[];
   type?: 'flash' | 'reset' | 'shuffle' | 'colors';
+  countdown?: number | null;
 }
 
 export const isNearbyAvailable = (): boolean => {

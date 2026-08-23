@@ -170,7 +170,9 @@ class NearbyManager(
       } else {
         true
       }
-      return scan && adv && conn && nearbyWifi
+      val coarse = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+      val fine = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+      return scan && adv && conn && nearbyWifi && (coarse || fine)
     } else {
       return ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
