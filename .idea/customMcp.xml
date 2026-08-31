@@ -19,6 +19,7 @@
             </list>
           </option>
           <option name="id" value="56715a3b-98e6-40a0-8807-4db4f00c1829" />
+          <option name="instructions" value="This server allows Agents and LLMs to interact with native iOS/Android applications and devices through structured accessibility snapshots or coordinate-based taps based on screenshots.&#10;&#10;" />
           <option name="name" value="mobile-mcp" />
           <option name="type" value="stdio" />
         </CustomMcpServerConfig>
