@@ -11,6 +11,8 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/native-rewrite" />
+            <option value="$PROJECT_DIR$/native-rewrite/app" />
           </set>
         </option>
       </GradleProjectSettings>

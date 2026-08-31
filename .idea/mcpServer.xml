@@ -55,6 +55,7 @@
         <option value="test_database_connection" />
       </set>
     </option>
+    <option name="port" value="8643" />
     <option name="staticPort" value="true" />
   </component>
 </project>
