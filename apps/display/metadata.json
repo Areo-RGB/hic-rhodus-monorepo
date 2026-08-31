@@ -1,7 +1,0 @@
-{
-  "name": "Hic Rhodus",
-  "description": "2-mal-2 Farbwechsel-Training web app embedded locally in Android WebView.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
-
