@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="McpServerSettings">
+    <option name="defaultsApplied" value="true" />
+    <option name="defaultsVersion" value="2" />
+    <option name="disabledToolIds">
+      <set>
+        <option value="debug_evaluate" />
+        <option value="debug_inspect_frame" />
+        <option value="debug_run_to_line" />
+        <option value="debug_snapshot" />
+        <option value="debug_step" />
+        <option value="debug_variable_detail" />
+        <option value="breakpoint_list" />
+        <option value="debug_session_list" />
+        <option value="breakpoint_manage" />
+        <option value="debug_read_console" />
+        <option value="debug_session_start" />
+        <option value="debug_session_stop" />
+        <option value="git_blame" />
+        <option value="git_branch" />
+        <option value="git_cherry_pick" />
+        <option value="git_config" />
+        <option value="git_conflict_resolve" />
+        <option value="git_conflict_show" />
+        <option value="git_conflicts" />
+        <option value="git_fetch" />
+        <option value="git_init" />
+        <option value="git_log" />
+        <option value="git_reset" />
+        <option value="git_revert" />
+        <option value="git_tag" />
+        <option value="git_unstage" />
+        <option value="git_untrack" />
+        <option value="notebook_add_cell" />
+        <option value="notebook_change_cell_type" />
+        <option value="notebook_delete_cell" />
+        <option value="notebook_edit_cell" />
+        <option value="notebook_list_cells" />
+        <option value="notebook_move_cell" />
+        <option value="notebook_read_cell" />
+        <option value="set_theme" />
+        <option value="get_sonar_rule_description" />
+        <option value="list_themes" />
+        <option value="run_sonarqube_analysis" />
+        <option value="cancel_sql_query" />
+        <option value="execute_sql_query" />
+        <option value="get_database_object_description" />
+        <option value="list_database_connections" />
+        <option value="list_database_schemas" />
+        <option value="list_recent_sql_queries" />
+        <option value="list_schema_object_kinds" />
+        <option value="list_schema_objects" />
+        <option value="preview_table_data" />
+        <option value="test_database_connection" />
+      </set>
+    </option>
+    <option name="staticPort" value="true" />
+  </component>
+</project>

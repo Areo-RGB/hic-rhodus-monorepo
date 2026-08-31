@@ -1,9 +1,0 @@
-{
-  "name": "@hic-rhodus/nearby-protocol",
-  "private": true,
-  "version": "1.0.0",
-  "type": "module",
-  "exports": {
-    "./protocol.json": "./protocol.json"
-  }
-}

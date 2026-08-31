@@ -1,6 +1,0 @@
-{
-  "version": 1,
-  "serviceId": "hic_rhodus_p2p",
-  "strategy": "P2P_STAR",
-  "payloadEncoding": "utf-8-json"
-}

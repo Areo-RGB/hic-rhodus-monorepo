@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CustomMcpSettings">
+    <option name="servers">
+      <list>
+        <CustomMcpServerConfig>
+          <option name="args">
+            <list>
+              <option value="-y" />
+              <option value="@mobilenext/mobile-mcp@latest" />
+            </list>
+          </option>
+          <option name="command" value="npx" />
+          <option name="commandParts">
+            <list>
+              <option value="npx" />
+              <option value="-y" />
+              <option value="@mobilenext/mobile-mcp@latest" />
+            </list>
+          </option>
+          <option name="id" value="56715a3b-98e6-40a0-8807-4db4f00c1829" />
+          <option name="name" value="mobile-mcp" />
+          <option name="type" value="stdio" />
+        </CustomMcpServerConfig>
+      </list>
+    </option>
+  </component>
+</project>
